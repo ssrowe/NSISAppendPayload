@@ -10,6 +10,7 @@
 #include <exception>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #ifndef DWORD
 typedef unsigned int       DWORD;
@@ -26,8 +27,9 @@ std::string g_output_file;
 void showHelp()
 {
 	std::cerr << std::endl;
-	std::cerr << "Syntax: AppendPayLoad.exe input_file payload_file output_file" << std::endl;
-	std::cerr << "Usage: Append payload at the end of input file." << std::endl << "The result is stored in output_file" << std::endl;
+	std::cerr << "USAGE: AppendPayLoad.exe [input_file] [payload] [output_file]" << std::endl;
+	std::cerr << "     [payload] is either a file path that begins with 'file://' or a sting that begins with 'CUSTDATA:'" << std::endl;
+	std::cerr << "Append custom payload at the end of input file (NSIS Signed Setup file)." << std::endl << "The result (updated NSIS Signed Setup file) is stored in output_file" << std::endl;
 	std::cerr << std::endl;
 }
 
@@ -139,38 +141,52 @@ void addPayload(std::istream& in_stream, std::istream& payload_stream, std::ostr
 
 int main(int argc, char* argv[])
 {
+    try {
+        // Parse command-line parameters
+        if (!parseParameters(argc, argv))
+            return -1;
 
-	try {
-		// Parse cmd line parameters
-		if (!parseParameters(argc, argv))
-			return -1;
+        // Create file streams
+        std::ifstream input_file(g_input_file.c_str(), std::ios::binary | std::ios::in);
+        if (!input_file) {
+            throw std::runtime_error("Cannot open input file");
+        }
+        std::ofstream output_file(g_output_file.c_str(), std::ios::binary | std::ios::out);
+        if (!output_file) {
+            throw std::runtime_error("Cannot create output file");
+        }
 
-		// Create file streams
-		std::ifstream input_file(g_input_file.c_str(), std::ios::binary|std::ios::in);
-		if (input_file.fail() || input_file.bad())
-			throw std::runtime_error("Cannot open input file");
-		std::ifstream payload_file(g_payload_file.c_str(), std::ios::binary|std::ios::in);
-		if (payload_file.fail() || payload_file.bad())
-			throw std::runtime_error("Cannot open payload file");
-		std::ofstream output_file(g_output_file.c_str(), std::ios::binary|std::ios::out);
-		if (output_file.fail() || output_file.bad())
-			throw std::runtime_error("Cannot create output file");
+        // Set up exception throwing
+        input_file.exceptions(std::ios::eofbit | std::ios::failbit | std::ios::badbit);
+        output_file.exceptions(std::ios::failbit | std::ios::badbit);
 
-		// Set up exception throwing
-		input_file.exceptions(std::ios::eofbit|std::ios::failbit|std::ios::badbit);
-		payload_file.exceptions(std::ios::eofbit|std::ios::failbit|std::ios::badbit);
-		output_file.exceptions(std::ios::failbit|std::ios::badbit);
+        // Get the payload
+        std::istringstream payload_stream;
 
-		// Append payload
-		addPayload(input_file, payload_file, output_file);
-	} 
+        if (g_payload_file.substr(0, 9) == "CUSTDATA:") {
+            // Payload provided with "CUSTDATA:" prefix
+            payload_stream.str(g_payload_file);
+        } else if (g_payload_file.substr(0, 7) == "file://") {
+            // Payload provided as a file
+            std::ifstream payload_file(g_payload_file.substr(7).c_str());
+            if (!payload_file) {
+                throw std::runtime_error("Cannot open payload file");
+            }
+            //payload_stream << payload_file.rdbuf();
+			payload_stream.str(std::string(std::istreambuf_iterator<char>(payload_file), std::istreambuf_iterator<char>()));
+        } else {
+            throw std::runtime_error("Invalid payload.");
+        }
 
-	catch (std::exception& err)
-	{
-		std::cerr << "I/O Error: " << err.what() << std::endl;
-		return -2;
-	}
+        // Append payload
+        addPayload(input_file, payload_stream, output_file);
+    }
+    catch (std::exception& err) {
+        std::cerr << "I/O Error: " << err.what() << std::endl;
+        return -2;
+    }
 
-	return 0;
+    return 0;
 }
+
 
