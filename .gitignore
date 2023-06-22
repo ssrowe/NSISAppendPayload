@@ -1,0 +1,10 @@
+# Linux Binary
+NSISAppendPayload
+
+# Certificates
+*.pfx
+*.cer
+
+# Apps/Installs
+*.exe
+*.obj
