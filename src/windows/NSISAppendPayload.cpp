@@ -6,7 +6,6 @@
 // Author:
 //      Aymeric Barthe <aymeric@barthe.ph> - Original author (2009)
 
-#include "NSISAppendPayload.hpp"
 #include <exception>
 #include <iostream>
 #include <fstream>
