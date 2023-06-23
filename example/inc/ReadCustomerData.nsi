@@ -122,11 +122,6 @@ Done:
     Exch $R1
 FunctionEnd
 
-; ReadCSV
-; Uncomment to Enable ReadCSV Function
-; !define Enable_ReadCSV
-
-!ifdef Enable_ReadCSV
 Function  ReadCSV
         Exch    $1  # input string (csv)
         Push    $2  # substring of $1: length 1, checked for commata
@@ -166,44 +161,4 @@ Function  ReadCSV
         Pop $3
         Pop $2
         Exch    $1
-FunctionEnd
-!endif
-
-; Push ":" ; divider char
-; Push "string1:string2" ;input string
-; Call SplitString
-; Pop $R0 ;1st part ["string1"]
-; Pop $R1 ;rest ["string2|string3|string4|string5"]
-Function SplitString
-  Exch $R0
-  Exch
-  Exch $R1
-  Push $R2
-  Push $R3
-  StrCpy $R3 $R1
-  StrLen $R1 $R0
-  IntOp $R1 $R1 + 1
-  loop:
-    IntOp $R1 $R1 - 1
-    StrCpy $R2 $R0 1 -$R1
-    StrCmp $R1 0 exit0
-    StrCmp $R2 $R3 exit1 loop
-  exit0:
-  StrCpy $R1 ""
-  Goto exit2
-  exit1:
-    IntOp $R1 $R1 - 1
-    StrCmp $R1 0 0 +3
-     StrCpy $R2 ""
-     Goto +2
-    StrCpy $R2 $R0 "" -$R1
-    IntOp $R1 $R1 + 1
-    StrCpy $R0 $R0 -$R1
-    StrCpy $R1 $R2
-  exit2:
-  Pop $R3
-  Pop $R2
-  Exch $R1 ;rest
-  Exch
-  Exch $R0 ;first
 FunctionEnd
