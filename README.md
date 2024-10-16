@@ -60,8 +60,6 @@ Move over to a Linux shell e.g. WSL
 
 Now run CustomTestInstall.exe on Windows and you should see a popup box with the data you added from the setup.
 
-
-
 ## Technical Details
 
 Original Source: [Changing a Signed Executable Without Altering Windows Digital Signature](https://blog.barthe.ph/2009/02/22/change-signed-executable/) by Aymeric Barthe 02/22/2019
@@ -133,8 +131,7 @@ InstalledDir: /Library/Developer/CommandLineTools/usr/bin
 Compile the program using the following command on Linux or macOS:
 
 ```
-g++ AppendPayLoad.cpp
-mv a.out AppendPayLoad
+> g++ -o NSISAppendPayload  NSISAppendPayload.cpp
 ```
 
 End with an example of getting some data out of the system or using it for a little demo
